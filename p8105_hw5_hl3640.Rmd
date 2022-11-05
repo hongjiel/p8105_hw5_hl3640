@@ -59,3 +59,19 @@ The data includes information of more than 52,000 criminal homicides over the pa
 * basic demographic information about each victim, including first name, last name, race, age, and sex;
 * the location of the killing, including state, city, longitude, and latitude;
 * whether an arrest was made.
+
+Create a city_state variable and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”). We assign the resulting dataset to `homicide_df`. We change one value of `city_state`, `Tulsa, AL`, to `Tulsa, OK`, because Tulsa is a city in Oklahoma, and the values of `uid`, `lat`, and `lon` indicate that the state should be `OK`.
+
+```{r p2_readtidy, message = FALSE}
+homicide_df =
+  read_csv("./data/homicide-data.csv") %>% 
+  unite(city_state, city:state, sep = ", ") %>% 
+  mutate(city_state = replace(city_state, city_state == "Tulsa, AL", "Tulsa, OK")) %>% 
+  group_by(city_state) %>% 
+  summarize(
+    n_obs = n(),
+    n_unsolved_obs = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
+  )
+
+homicide_df
+```
