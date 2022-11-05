@@ -123,3 +123,81 @@ unsolved_df %>%
     y = "City, State"
   )
 ```
+
+
+## Problem 3
+
+First set the following design elements:
+
+* Fix $n = 30$
+* Fix $\sigma = 5$
+
+```{r p3_setvalues}
+n = 30
+sigma = 5
+```
+
+Set $\mu = 0$. Generate 5000 datasets from the model
+
+$$ x \sim Normal[\mu, \sigma] $$
+
+For each dataset, save $\hat{\mu}$ and the p-value arising from a test of $H : \mu = 0$ using $\alpha = 0.05$.
+
+```{r p3_generate_dfs}
+mu = 0
+mu_null = 0
+alpha = 0.05
+
+set.seed(3640)
+
+sim_results_df =
+  rerun(
+    5000,
+    rnorm(n, mean = mu, sd = sigma) %>% 
+      t.test(x = ., mu = mu_null) %>% 
+      broom::tidy()
+  ) %>% 
+  bind_rows() %>% 
+  select(estimate, p.value) %>% 
+  mutate(mu = 0)
+
+sim_results_df
+```
+
+Repeat the above for $\mu = \{1, 2, 3, 4, 5, 6\}$.
+
+```{r p3_repeat}
+for (i in 1:6) {
+  
+  sim_results_df_mu =
+    rerun(
+      5000,
+      rnorm(n, mean = i, sd = sigma) %>% 
+        t.test(x = ., mu = mu_null) %>% 
+        broom::tidy()
+    ) %>% 
+    bind_rows() %>% 
+    select(estimate, p.value) %>% 
+    mutate(mu = i)
+  
+  sim_results_df = bind_rows(sim_results_df, sim_results_df_mu)
+  
+}
+
+sim_results_df
+```
+
+Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of $\mu$ on the x axis. Describe the association between effect size and power.
+
+```{r p3_plot1}
+sim_results_df %>% 
+  group_by(mu) %>% 
+  summarize(prop = sum(p.value < alpha) / n()) %>% 
+  ggplot(aes(x = mu, y = prop)) +
+  geom_point() +
+  geom_line() +
+  labs(
+    x = "True Mean",
+    y = "Proportion of Times Rejecting The Null"
+  )
+```
