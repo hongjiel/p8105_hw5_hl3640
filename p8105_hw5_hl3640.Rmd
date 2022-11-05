@@ -48,3 +48,14 @@ arm_df %>%
     y = "Observation"
   )
 ```
+
+
+## Problem 2
+
+The data includes information of more than 52,000 criminal homicides over the past decade in 50 of the largest American cities. The raw data includes:
+
+* uid;
+* reported date;
+* basic demographic information about each victim, including first name, last name, race, age, and sex;
+* the location of the killing, including state, city, longitude, and latitude;
+* whether an arrest was made.
