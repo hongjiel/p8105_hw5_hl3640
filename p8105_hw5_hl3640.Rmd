@@ -164,7 +164,7 @@ sim_results_df =
 sim_results_df
 ```
 
-Repeat the above for $\mu = \left\{1, 2, 3, 4, 5, 6\right\}$.
+Repeat the above for $\mu = \{1, 2, 3, 4, 5, 6\}$.
 
 ```{r p3_repeat}
 for (i in 1:6) {
