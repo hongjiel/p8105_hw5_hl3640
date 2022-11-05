@@ -89,3 +89,23 @@ unsolved_prop_bal %>%
   broom::tidy() %>% 
   select(estimate, conf.low, conf.high)
 ```
+
+Now run `prop.test` for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. We create a tidy dataframe `unsolved_df` with estimated proportions and CIs for each city.
+
+```{r prop_all}
+unsolved_df =
+  homicide_df %>% 
+  mutate(
+    htest = 
+      map2(
+        .x = n_unsolved_obs, .y = n_obs,
+        ~ prop.test(x = .x, n = .y) %>% 
+          broom::tidy()
+      )
+  ) %>% 
+  unnest(htest) %>% 
+  janitor::clean_names() %>% 
+  select(city_state, estimate, conf_low, conf_high)
+
+unsolved_df
+```
