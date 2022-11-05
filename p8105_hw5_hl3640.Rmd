@@ -109,3 +109,17 @@ unsolved_df =
 
 unsolved_df
 ```
+
+Create a plot that shows the estimates and CIs for each city – check out `geom_errorbar` for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
+
+```{r p2_plot}
+unsolved_df %>% 
+  ggplot(aes(x = estimate, y = fct_reorder(city_state, estimate))) +
+  geom_point() +
+  geom_errorbar(aes(xmax = conf_high, xmin = conf_low)) +
+  labs(
+    title = "The estimates and CIs of the proportion of unsolved homicides for each city",
+    x = "Proportion of Unsolved Homicides",
+    y = "City, State"
+  )
+```
