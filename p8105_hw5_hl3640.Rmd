@@ -31,17 +31,17 @@ arm_df = list.files(path = "./data/", pattern = "^[ce]", full.names = T) %>%
     week = as.numeric(week),
     arm = str_extract(arm, "[a-z]{3}_[0-9]{2}")
   ) %>% 
-  separate(arm, into = c("arm", "subject_id"), sep = "_") %>% 
-  filter(arm == "con")
+  separate(arm, into = c("arm", "subject_id"), sep = "_")
 ```
 
-Make a spaghetti plot showing observations on each subject over time, and comment on differences between groups.
+Make a spaghetti plot showing observations on each subject over time.
 
 ```{r p1_plot}
 arm_df %>% 
-  ggplot(aes(x = week, y = observation, color = subject_id)) +
-  geom_line() +
+  ggplot(aes(x = week, y = observation, group = subject_id, color = arm)) +
+  geom_path() +
   geom_point() +
+  facet_grid(~arm) +
   labs(
     title = "Observations on each subject over time",
     x = "Week",
@@ -49,18 +49,20 @@ arm_df %>%
   )
 ```
 
+At the beginning of observations, subjects in the control arm and the experimental arm have roughly the same average of observation values. For the control arm, the observations of 10 subjects do not change generally over 8 weeks, while for the experimental arm, the observations of 10 subjects grow roughly linearly over 8 weeks.
+
 
 ## Problem 2
 
 The data includes information of more than 52,000 criminal homicides over the past decade in 50 of the largest American cities. The raw data includes:
 
-* uid;
-* reported date;
-* basic demographic information about each victim, including first name, last name, race, age, and sex;
-* the location of the killing, including state, city, longitude, and latitude;
-* whether an arrest was made.
+* uid
+* reported date
+* basic demographic information about each victim, including first name, last name, race, age, and sex
+* the location of the killing, including state, city, longitude, and latitude
+* whether an arrest was made
 
-Create a city_state variable and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides (those for which the disposition is “Closed without arrest” or “Open/No arrest”). We assign the resulting dataset to `homicide_df`. We change one value of `city_state`, `Tulsa, AL`, to `Tulsa, OK`, because Tulsa is a city in Oklahoma, and the values of `uid`, `lat`, and `lon` indicate that the state should be `OK`.
+We create a `city_state` variable and then summarize within cities to obtain the total number of homicides and the number of unsolved homicides. We assign the resulting dataset to `homicide_df`. We change one value of `city_state`, `Tulsa, AL`, to `Tulsa, OK`, because Tulsa is a city in Oklahoma, and the values of `uid`, `lat`, and `lon` indicate that the state should be `OK`.
 
 ```{r p2_readtidy, message = FALSE}
 homicide_df =
@@ -90,7 +92,7 @@ unsolved_prop_bal %>%
   select(estimate, conf.low, conf.high)
 ```
 
-Now run `prop.test` for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. We create a tidy dataframe `unsolved_df` with estimated proportions and CIs for each city.
+Now we run `prop.test` for each of the cities in our dataset, and extract both the proportion of unsolved homicides and the confidence interval for each. We create a tidy dataframe `unsolved_df` with estimated proportions and CIs for each city.
 
 ```{r prop_all}
 unsolved_df =
@@ -110,15 +112,15 @@ unsolved_df =
 unsolved_df
 ```
 
-Create a plot that shows the estimates and CIs for each city – check out `geom_errorbar` for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides.
+We create a plot that shows the estimates and CIs for each city and organize cities according to the proportion of unsolved homicides.
 
-```{r p2_plot}
+```{r p2_plot, fig.width = 7.5, fig.height = 9}
 unsolved_df %>% 
   ggplot(aes(x = estimate, y = fct_reorder(city_state, estimate))) +
   geom_point() +
   geom_errorbar(aes(xmax = conf_high, xmin = conf_low)) +
   labs(
-    title = "The estimates and CIs of the proportion of unsolved homicides",
+    title = "Estimates and CIs of the proportion of unsolved homicides in 50 cities",
     x = "Proportion of Unsolved Homicides",
     y = "City, State"
   )
@@ -187,7 +189,7 @@ for (i in 1:6) {
 sim_results_df
 ```
 
-Make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of $\mu$ on the x axis.
+We make a plot showing the proportion of times the null was rejected (the power of the test) on the y axis and the true value of $\mu$ on the x axis.
 
 ```{r p3_plot1}
 sim_results_df %>% 
@@ -202,9 +204,9 @@ sim_results_df %>%
   )
 ```
 
-Describe the association between effect size and power.
+The power starts to increase sharply and then approaches the limit 1 as the true mean $\mu$ increases from 0.
 
-Make a plot showing the average estimate of $\hat{\mu}$ on the y axis and the true value of $\mu$ on the x axis.
+We make a plot showing the average estimate of $\hat{\mu}$ on the y axis and the true value of $\mu$ on the x axis.
 
 ```{r p3_plot_2}
 sim_results_df %>% 
@@ -220,7 +222,7 @@ sim_results_df %>%
   )
 ```
 
-Make a second plot (or overlay on the first) the average estimate of $\hat{\mu}$ only in samples for which the null was rejected on the y axis and the true value of $\mu$ on the x axis.
+We then make a second plot the average estimate of $\hat{\mu}$ only in samples for which the null was rejected on the y axis and the true value of $\mu$ on the x axis.
 
 ```{r p3_plot_3}
 sim_results_df %>% 
@@ -237,4 +239,14 @@ sim_results_df %>%
   )
 ```
 
-Is the sample average of $\hat{\mu}$ across tests for which the null is rejected approximately equal to the true value of $\mu$? Why or why not?
+The sample average of $\hat{\mu}$ across tests for which the null is rejected is approximately equal to the true value of $\mu$ when $\mu$ is zero and $\mu$ is large enough ($\mu = 4, 5, 6$ in our plots).
+
+For every hypothesis test we conducted, the test statistic is $t = \displaystyle\frac{\hat{\mu} - 0}{s / \sqrt{n}}$, where $\hat{\mu}$ is the sample mean and $s$ is the sample standard deviation of the dataset we generated. The non-rejection region is $t \in (t_{29,0.025}, t_{29,0.975})$.
+
+For every $\mu$, we have that $\displaystyle\frac{\hat{\mu} - \mu}{s / \sqrt{n}} \sim t_{29}$.
+
+When $\mu = 0$, the distribution of the test statistic $t = \displaystyle\frac{\hat{\mu} - 0}{s / \sqrt{n}} \sim t_{29}$, and it is approximately symmetric about the mean 0. Since the rejection region is also symmetric about 0, the number of $\hat{\mu}$ that makes $t < t_{29,0.025}$ is approximately the same as the number of $\hat{\mu}$ that makes $t > t_{29,0.975}$, and the distribution of $\hat{\mu}$ that makes $t$ fall in the rejection region is approximately symmetric about 0. Thus, the sample average of $\hat{\mu}$ across tests for which the null is rejected is approximately equal to $\mu = 0$.
+
+When $\mu$ is not large enough ($\mu = 1, 2, 3$), we have that $\displaystyle\frac{\hat{\mu} - \mu}{s / \sqrt{n}} \sim t_{29}$. Then for the test statistic $t = \displaystyle\frac{\hat{\mu} - 0}{s / \sqrt{n}}$, the number of $\hat{\mu} < \mu$ that makes $t$ fall in the non-rejection region is greater than the number of $\hat{\mu} > \mu$ that makes $t$ fall in the non-rejection region in almost all cases (we have 5,000 datasets), and the distribution of $\hat{\mu}$ is approximately symmetric about $\mu$. Also, since $\mu$ is close to 0, there are a certain amount of $\hat{\mu}$ that makes $t$ fall in the non-rejection region. Thus, the average estimate of $\hat{\mu}$ only in samples for which the null was not rejected is less than $\mu$ in almost all cases. In other words, the average estimate of $\hat{\mu}$ only in samples for which the null was rejected is greater than $\mu$ in almost all cases.
+
+When $\mu$ is large enough ($\mu = 4, 5, 6$), we have that $\displaystyle\frac{\hat{\mu} - \mu}{s / \sqrt{n}} \sim t_{29}$, and it is a bell-shaped symmetric distribution. Then for the test statistic $t = \displaystyle\frac{\hat{\mu} - 0}{s / \sqrt{n}}$, since $\mu$ is far away from 0, there are hardly any $\hat{\mu}$ that makes $t$ fall in the non-rejection region. Thus, the average estimate of $\hat{\mu}$ only in samples for which the null was rejected is approximately equal to $\mu$.
